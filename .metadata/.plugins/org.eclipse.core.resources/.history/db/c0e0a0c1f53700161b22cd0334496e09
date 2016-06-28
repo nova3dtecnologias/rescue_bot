@@ -1,0 +1,151 @@
+package br.com.rescuebots_brain.socket1;
+
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+
+public class ClientConnection  {
+
+	private static final long serialVersionUID = 1L;
+	private Socket servidor = null;
+	private ObjectOutputStream output = null;
+    private ObjectInputStream input = null;
+    private String messageFull = "";
+    private String user = "";
+	
+    /**
+     * Method responsible for making the process of connecting to a server.
+     * 
+     * @param host String with the server address (IP address 192.168.0.1)
+     * @param port The port number where the server is listening for connection
+     * @param user String with Name of 'user' that are connecting to the server 
+     * or the machine name (Sample: InetAddress.getLocalHost (). GetHostName ();)
+     */
+	public boolean initClient(String host, int port, String user){
+		try {
+			this.user = user;
+			connectToServer(host, port);
+			getStreams();
+			processConnection();
+			return true;
+		}catch(EOFException eof){
+			eof.printStackTrace();
+		}catch (IOException e) {
+			e.printStackTrace();
+		}finally{
+			closeConnection();
+		}
+		return false;
+	}
+	
+	/**
+	 * Method that makes the connection between the client X server
+	 * 
+	 * @param host String with the server address (IP address 192.168.0.1)
+	 * @param port The port number where the server is listening for connection
+	 * @throws UnknownHostException You can launch an UnknownHostException 
+	 * @throws IOException You can launch an IOException 
+	 */
+	private void connectToServer(String host, int port) throws UnknownHostException, IOException{
+		servidor = new Socket(host,port);
+		if (servidor != null){
+			displayMessage(user.toUpperCase() + " conected to >> " + servidor + " server \n");
+		}
+	}
+	
+	/**
+	 * 	Method responsible for finalizing the connection to a client
+	 */
+	public boolean closeConnection(){
+		try{
+			if(output != null)output.close();
+			if(input != null)input.close();
+			if(servidor != null)servidor.close();
+			System.out.println("Terminei a conexão!!!");
+			return true;
+		}catch(IOException io){
+			io.printStackTrace();
+		}
+		return false;
+	}
+	
+	/**
+	 * Method responsible for obtaining the input and output streams of data between client X server 
+	 * 
+	 * @throws IOException You can launch an IOException 
+	 */
+	private void getStreams() throws IOException{
+		//Get Stream output - sends messages
+		output = new ObjectOutputStream (servidor.getOutputStream());
+		output.flush();
+
+		//Get Stream input - receive messages
+		input = new ObjectInputStream( servidor.getInputStream() );
+	}
+	
+	/**
+	 * Method responsible for doing the processing of messages between client X server. 
+	 * 
+	 * @throws IOException You can launch an IOException 
+	 */
+	private void processConnection() throws IOException{
+		do{ 
+			try{
+				FeedBack o = (FeedBack) input.readObject();
+				if(o != null){
+					System.out.println("LI O OBJETO DO SERVIDOR - TEAM:" + o);
+					//hero.setClientName(user);
+					updateClient(o);
+				}else{
+					messageFull = "OffLine ...";
+					displayMessage(messageFull + "\n");
+				}
+			}catch(ClassNotFoundException cl){
+				cl.printStackTrace();
+			}
+		}while(!messageFull.contains("FIM"));
+	}
+	
+	/**
+	 * Method responsible for sending an object / message to the server
+	 * 
+	 * @param hero AbstractHero to be sent to server
+	 */
+	public void sendData( FeedBack o ){
+		try{
+			output.writeObject(o);
+			output.flush();
+		}catch(IOException io){
+			System.out.println("Speak to send the object");
+			io.printStackTrace();
+		}
+	}
+	
+	public void sendData( ArrayList<FeedBack> list){
+		try{
+			for (int i = 0; i < list.size(); i++) {
+				FeedBack o = list.get(i);
+				output.writeObject(o);
+				output.flush();
+			}
+			
+		}catch(IOException io){
+			System.out.println("Speak to send the object");
+			io.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Method responsible for adding a message on the console.
+	 * 
+	 * @param messageToDisplay String with message to be printed in the console
+	 */
+	private void displayMessage( final String messageToDisplay ){
+		if(messageToDisplay!=null) System.out.println(messageToDisplay); 
+	}
+	
+}

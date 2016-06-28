@@ -1,0 +1,5 @@
+package br.com.rescuebots_brain.socket1;
+
+public class FeedBack {
+
+}

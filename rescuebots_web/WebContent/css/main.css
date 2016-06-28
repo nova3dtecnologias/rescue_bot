@@ -1,0 +1,57 @@
+.topo {
+    background-image: url("file:///Volumes/RAID/Clientes/nova3d/robot/site/novo/topo.png");
+    position: relative;
+    width: 100%;
+    height: 100px;
+    background-repeat: round;
+   
+}
+
+.rigth {
+    background-image: url("file:///Volumes/RAID/Clientes/nova3d/robot/site/novo/lado.png");
+    position: relative;
+    height: 690px;
+    background-repeat: no-repeat;
+    float: right;
+    width: 154px;
+}
+
+.center {
+    width: 77%;
+    height: 450px;
+    margin: 0 auto;
+    background:
+}
+
+.car{
+
+    display: block;
+    padding-left: 10px;
+}
+
+.img-car{
+
+ background-image: url("file:///Volumes/RAID/Clientes/nova3d/robot/site/novo/icon_online.png");
+ background-repeat: no-repeat;
+     width: 100%;
+    height: 140px;
+
+}
+
+.img-car2{
+
+ background-image: url("file:///Volumes/RAID/Clientes/nova3d/robot/site/novo/icon_offline.png");
+ background-repeat: no-repeat;
+     width: 100%;
+    height: 140px;
+
+}
+
+.img-car3{
+
+ background-image: url("file:///Volumes/RAID/Clientes/nova3d/robot/site/novo/icon_off.png");
+ background-repeat: no-repeat;
+     width: 100%;
+    height: 140px;
+
+}

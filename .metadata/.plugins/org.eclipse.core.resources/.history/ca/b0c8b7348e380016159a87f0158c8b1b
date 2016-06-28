@@ -1,0 +1,108 @@
+package br.com.rescuebots_brain.database;
+import java.sql.DriverManager;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import br.com.rescuebots_brain.database.entity.Tracker;
+/**
+ * Classe relacionada com os requisitos de banco de dados postgresql
+ * @author nova3d-webserver01
+ *
+ */
+public class Database {
+
+	Connection connection = null;
+	
+
+	public void initDatabase(){
+		System.out.println("--------> PostgreSQL Connection");
+		try {
+			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException e) {
+			System.out.println("Where is your PostgreSQL JDBC Driver? "
+					+ "Include in your library path!");
+			e.printStackTrace();
+			return;
+		}
+		System.out.println("PostgreSQL JDBC Driver Registered!");
+		try {
+			connection = DriverManager.getConnection(
+					"jdbc:postgresql://192.168.1.177:5432/rescuebots_db", "postgres",
+					"postgres");
+
+		} catch (SQLException e) {
+
+			System.out.println("Connection Failed! Check output console");
+			e.printStackTrace();
+			return;
+
+		}
+
+		if (connection != null) {
+			System.out.println("You made it, take control your database now!");
+		} else {
+			System.out.println("Failed to make connection!");
+		}
+	
+	   System.out.println("Goodbye!");
+	}
+
+		
+		
+		
+	
+	
+	
+	
+	public void insert (Tracker t) throws SQLException{
+		
+		System.out.println("Inserting records into the table...");
+	      Statement stmt = connection.createStatement();
+	      
+	      String sql = "INSERT INTO tracker(" + 
+	    		  "accuracy, altitude, bearing, latitude, longitude, provider, " +
+	    		  "speed, \"time\", found,robot_id,geom)" + 
+	              "VALUES ("+
+	              "'" + t.getAccuracy()+ "',"+
+	              "'" + t.getAltitude() + "',"+
+	              "'" + t.getEaring() + "',"+
+	              "'" + t.getLatitude() + "',"+
+	              "'" + t.getLongitude() + "',"+
+	              "'" + t.getProvider() + "',"+
+	              "'" + t.getSpeed() + "',"+
+	              "'" + t.getTime() + "',"+
+	              "'" + t.getFound() + "',"+
+	              "'" + t.getRobotId() + "',"+ 
+	              "ST_SetSRID(ST_MakePoint(" +
+	              "cast("+t.getLongitude()+" as double precision), " +
+	              "cast("+t.getLatitude()+" as double precision)), 4326))";
+	      stmt.executeUpdate(sql);
+	      System.out.println("Inserted records into the table...");
+		
+		
+	}
+
+	public String getLastCoordinate() {
+		  System.out.println("read records into the table...");
+		  try {
+	      Statement stmt = connection.createStatement();
+	      String sql = "SELECT latitude, longitude from tracker order by servertime desc limit 1 ";
+		  ResultSet rs = stmt.executeQuery(sql);
+		  while(rs.next()){
+			  return "["+rs.getString(1) +","+ rs.getString(2)+"]";
+		  }
+		} catch (SQLException e) {
+		  e.printStackTrace();
+		}
+	    return null;
+	}
+	
+	public static void main(String[] args) {
+		Database database = new Database();
+		database.initDatabase();
+		System.out.println("last coordinate" + database.getLastCoordinate());
+	}
+}
+

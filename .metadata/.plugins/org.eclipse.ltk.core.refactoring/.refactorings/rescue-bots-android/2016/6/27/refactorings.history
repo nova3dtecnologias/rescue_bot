@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename field &apos;imageButton1&apos; in &apos;br.com.rescue_bots_android.R.id&apos; to &apos;imageButtonClaw&apos;&#x0A;- Original project: &apos;rescue-bots-android&apos;&#x0A;- Original element: &apos;br.com.rescue_bots_android.R.id.imageButton1&apos;&#x0A;- Renamed element: &apos;br.com.rescue_bots_android.R.id.imageButtonClaw&apos;&#x0A;- Update references to refactored element&#x0A;- Update textual occurrences in comments and strings" delegate="false" deprecate="true" description="Rename field &apos;imageButton1&apos;" flags="589830" getter="false" id="org.eclipse.jdt.ui.rename.field" input="/gen&lt;br.com.rescue_bots_android{R.java[R[id^imageButton1" name="imageButtonClaw" references="true" setter="false" stamp="1467050242260" textual="false" version="1.0"/>
+</session>

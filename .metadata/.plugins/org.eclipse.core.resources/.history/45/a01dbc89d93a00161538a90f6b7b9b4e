@@ -1,0 +1,53 @@
+package br.com.rescue_bots_android.controller;
+
+import java.util.List;
+
+import android.app.Activity;
+import android.util.Log;
+import br.com.rescue_bots_android.sqlite.RouteRepositorio;
+import br.com.rescue_bots_android.sqlite.entity.Path;
+
+public class RouteController  extends Controller{
+
+	public RouteController(Activity activity) {
+		super(activity);
+		// TODO Auto-generated constructor stub
+	}
+	
+	public long inserir(Path bean){
+		if(bean!=null){
+			RouteRepositorio repository = null;
+			try {
+				repository = new RouteRepositorio(activity);
+				return repository.inserir(bean);
+			} catch (Exception e) {
+				Log.e("ERROR", e.getLocalizedMessage(),e);
+			}finally{
+				repository.close();
+			}	
+		}
+		return 0;
+	}
+	public void removeAll() {
+		RouteRepositorio repository = null;
+			try {
+				repository = new RouteRepositorio(activity);
+				repository.removeAll();
+			} catch (Exception e) {
+				Log.e("ERROR", e.getLocalizedMessage(),e);
+			}finally{
+				repository.close();
+			}	
+	}
+	public void selectAll(List<Path> result) {
+		RouteRepositorio repository = null;
+		try {
+			repository = new RouteRepositorio(activity);
+			repository.selectAll(result);
+		} catch (Exception e) {
+			Log.e("ERROR", e.getLocalizedMessage(),e);
+		}finally{
+			repository.close();
+		}	
+	}
+}

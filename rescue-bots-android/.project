@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>rescue-bots-android</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>com.android.ide.eclipse.adt.ResourceManagerBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>com.android.ide.eclipse.adt.PreCompilerBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>com.android.ide.eclipse.adt.ApkBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>com.android.ide.eclipse.adt.AndroidNature</nature>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>src_pojo</name>
+			<type>2</type>
+			<location>/Users/nova3d-macmini03/Dropbox/Nova3d/rescue_bots_v2/workspace/rescuebots_pojo/src</location>
+		</link>
+		<link>
+			<name>src_utils</name>
+			<type>2</type>
+			<location>/Users/nova3d-macmini03/Dropbox/Nova3d/rescue_bots_v2/workspace/rescuebots-utils/src</location>
+		</link>
+	</linkedResources>
+</projectDescription>

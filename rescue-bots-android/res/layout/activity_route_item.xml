@@ -1,0 +1,43 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:padding="5dp"
+    android:scrollbars="horizontal" >
+
+        <TextView
+            android:id="@+id/textview_lista_latitude"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_marginLeft="5dp"
+           android:layout_weight="0.4"
+            android:gravity="center_vertical"
+            android:text="Latitude"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@color/white" >
+
+        </TextView>
+      
+        <TextView
+            android:id="@+id/textview_lista_longitude"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_marginLeft="5dp"
+            android:layout_weight="0.4"
+            android:gravity="center_vertical"
+            android:text="Longitude"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@color/white" >
+
+        </TextView>
+          <ImageView
+        android:id="@+id/imageView_lista_status"
+        android:layout_width="0dp"
+         android:layout_weight="0.2"
+        android:layout_height="45dp"
+        
+        android:src="@drawable/marker_nofound" />
+
+
+    
+
+</LinearLayout>

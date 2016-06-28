@@ -1,0 +1,796 @@
+/*
+ * Released under MIT License http://opensource.org/licenses/MIT
+ * Copyright (c) 2013 Plasty Grove
+ * Refer to file LICENSE or URL above for full text 
+ */
+
+package br.com.rescue_bots_android.bluetooth;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.hardware.GeomagneticField;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationManager;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
+import android.util.FloatMath;
+import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
+import br.com.rescue_bots_android.R;
+import br.com.rescue_bots_android.RouteActivity;
+import br.com.rescue_bots_android.controller.RouteController;
+import br.com.rescue_bots_android.gps.GPSTrackerImplementation;
+import br.com.rescue_bots_android.gps.GPSTrackerInterface;
+import br.com.rescue_bots_android.math.MathEngine;
+import br.com.rescue_bots_android.sqlite.entity.Route;
+import br.com.rescue_bots_android.ui.ActivityList.AboutScreen;
+import br.com.rescue_bots_control.JoystickView;
+import br.com.rescue_bots_control.JoystickView.OnJoystickMoveListener;
+
+public class MainActivity extends Activity  implements GPSTrackerInterface,SensorEventListener{
+
+	private static final String TAG = "BlueTest5-MainActivity";
+	private int mMaxChars = 50000;//Default
+	private UUID mDeviceUUID;
+	private BluetoothSocket mBTSocket;
+	private ReadInput mReadThread = null;
+
+	private boolean mIsUserInitiatedDisconnect = false;
+
+	// All controls here
+	private TextView mTxtReceive;
+	private EditText mEditSend;
+	private Button mBtnDisconnect;
+	private Button mBtnSend;
+	private Button mBtnClear;
+	private Button mBtnClearInput;
+	private ScrollView scrollView;
+	private CheckBox chkScroll;
+	private CheckBox chkReceiveText;
+	private JoystickView joystickView;
+	private TextView editTextAngle;
+
+	private boolean mIsBluetoothConnected = false;
+
+	private BluetoothDevice mDevice;
+
+	private ProgressDialog progressDialog;
+	
+	
+	public static final String DEVICE_EXTRA = "com.blueserial.SOCKET";
+	public static final String DEVICE_UUID = "com.blueserial.uuid";
+	private static final String DEVICE_LIST = "com.blueserial.devicelist";
+	private static final String DEVICE_LIST_SELECTED = "com.blueserial.devicelistselected";
+	public static final String BUFFER_SIZE = "com.blueserial.buffersize";
+	public static final String BLUE_SOCKET = "com.blueserial.BLUESOCKET";
+	public GPSTrackerImplementation gps;
+	
+	private RouteController controller;
+	private List<Route> coordinates;
+	
+	 // record the compass picture angle turned
+	    private float currentDegree = 0f;
+	    // device sensor manager
+	    private SensorManager mSensorManager;
+	    private ImageView image;
+
+
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); 
+		super.onCreate(savedInstanceState);
+		
+		setContentView(R.layout.activity_main_blue);
+		
+		
+		
+		ActivityHelper.initialize(this);
+		
+		controller = new RouteController(this);
+		coordinates = new ArrayList<Route>();
+		controller.selectAll(coordinates);
+		
+		
+		Intent intent = getIntent();
+		Bundle b = intent.getExtras();
+		mDevice = b.getParcelable(Homescreen.DEVICE_EXTRA);
+		mDeviceUUID = UUID.fromString(b.getString(Homescreen.DEVICE_UUID));
+		mMaxChars = b.getInt(Homescreen.BUFFER_SIZE);
+
+		Log.d(TAG, "Ready");
+
+		mBtnDisconnect = (Button) findViewById(R.id.btnDisconnect);
+		mBtnSend = (Button) findViewById(R.id.btnSend);
+		mBtnClear = (Button) findViewById(R.id.btnClear);
+		mTxtReceive = (TextView) findViewById(R.id.txtReceive);
+		mEditSend = (EditText) findViewById(R.id.editSend);
+		scrollView = (ScrollView) findViewById(R.id.viewScroll);
+		chkScroll = (CheckBox) findViewById(R.id.chkScroll);
+		chkReceiveText = (CheckBox) findViewById(R.id.chkReceiveText);
+		mBtnClearInput = (Button) findViewById(R.id.btnClearInput);
+		editTextAngle = (TextView) findViewById(R.id.editTextAngle);
+		joystickView = (JoystickView) findViewById(R.id.viewJoystick);
+		//Event listener that always returns the variation of the angle in degrees, motion power in percentage and direction of movement
+	
+		
+		joystickView.setOnJoystickMoveListener(new OnJoystickMoveListener() {
+
+            @Override
+            public void onValueChanged(int angle, int power, int direction) {
+                // TODO Auto-generated method stub
+            	mTxtReceive.append(" " + String.valueOf(angle) + "°");
+            	mTxtReceive.append(" " + String.valueOf(power) + "%");
+                switch (direction) {
+                case JoystickView.FRONT:
+                	mTxtReceive.append("FRONT");
+                	sendSerial("a");
+                    break;
+                case JoystickView.FRONT_RIGHT:
+                	mTxtReceive.append("FRONT_RIGHT");
+                	sendSerial("c");
+                    break;
+                case JoystickView.RIGHT:
+                	mTxtReceive.append("RIGHT");
+                	sendSerial("c");
+                    break;
+                case JoystickView.RIGHT_BOTTOM:
+                	mTxtReceive.append("RIGHT_BOTTOM");
+                	sendSerial("f");
+                    break;
+                case JoystickView.BOTTOM:
+                	mTxtReceive.append("BOTTOM");
+                	sendSerial("d");
+                    break;
+                case JoystickView.BOTTOM_LEFT:
+                	mTxtReceive.append("BOTTOM_LEFT");
+                	sendSerial("e");
+                    break;
+                case JoystickView.LEFT:
+                	mTxtReceive.append("LEFT");
+                	sendSerial("b");
+                    break;
+                case JoystickView.LEFT_FRONT:
+                	mTxtReceive.append("LEFT_FRONT");
+                	sendSerial("b");
+                    break;
+                default:
+                	mTxtReceive.append("CENTER");
+                	sendSerial("g");
+                }
+            }
+        }, JoystickView.DEFAULT_LOOP_INTERVAL);
+		
+		
+		
+		mTxtReceive.setMovementMethod(new ScrollingMovementMethod());
+
+		mBtnDisconnect.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				mIsUserInitiatedDisconnect = true;
+				new DisConnectBT().execute();
+			}
+		});
+
+		mBtnSend.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View arg0) {
+				try {
+					mBTSocket.getOutputStream().write(mEditSend.getText().toString().getBytes());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+
+		mBtnClear.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View arg0) {
+				mEditSend.setText("");
+			}
+		});
+		
+		mBtnClearInput.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View arg0) {
+				//mTxtReceive.setText("");
+				if(mBtnClearInput.getText().toString().equalsIgnoreCase(LocationManager.GPS_PROVIDER)){
+					mBtnClearInput.setText(LocationManager.NETWORK_PROVIDER);
+					gps.setProvider(LocationManager.NETWORK_PROVIDER);
+				}else{
+					mBtnClearInput.setText(LocationManager.GPS_PROVIDER);
+					gps.setProvider(LocationManager.GPS_PROVIDER);
+				}
+			}
+		});
+		
+		initGPSListener();
+		
+		// initialize your android device sensor capabilities
+		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+		        image = (ImageView) findViewById(R.id.compassImg);
+
+
+	}
+	
+	
+	public void routeOnClick(View view){
+		Intent intent = new Intent(this,RouteActivity.class);
+		startActivity(intent);
+	}
+	
+	
+	
+	
+	public void initGPSListener(){
+		 // create class object
+		gps = new GPSTrackerImplementation(this);
+	    // check if GPS enabled     
+	     if(gps.canGetLocation()){
+	  	  String locationText = getLocationText(gps.getLocation());
+	 	   if(locationText!=null){
+	 		  Log.i("INFO",locationText);
+	 	   }else{
+	 		  Log.i("INFO","Sem coordenada");
+	 	   }
+	    }else{
+	  	  // can't get location
+	        // GPS or Network is not enabled
+	        // Ask user to enable GPS/network in settings
+	        gps.showSettingsAlert();
+	    }
+	}
+	public void stopGPSListener(){
+		
+   // check if GPS enabled     
+	 	   gps.stopUsingGPS();
+	 	  Log.i("INFO","GPS stoped");
+	 	  
+	   
+	}
+	
+	@Override
+	    public void onSensorChanged(SensorEvent event) {
+	        // get the angle around the z-axis rotated
+	        float degree = Math.round(event.values[0]);
+	        //tvHeading.setText("Heading: " + Float.toString(degree) + " degrees");
+	        // create a rotation animation (reverse turn degree degrees)
+	        RotateAnimation ra = new RotateAnimation(
+	                currentDegree,
+	                -degree,
+	                Animation.RELATIVE_TO_SELF, 0.5f,
+	                Animation.RELATIVE_TO_SELF,
+	                0.5f);
+	        // how long the animation will take place
+	        ra.setDuration(210);
+	        // set the animation after the end of the reservation status
+	        ra.setFillAfter(true);
+	        // Start the animation
+	        image.startAnimation(ra);
+	        currentDegree = degree;
+	       
+	     
+	        editTextAngle.setText("AngleM : "+currentDegree + " DistM : " +distance + " GPSDir " + gpsDirection + " Dif " + diference + " Ponto " + index);
+		     
+	    }
+	    @Override
+	    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+	        // not in use
+	    }
+
+	
+	    private GeomagneticField geoField;
+	    private float myBearing =0;
+	    private float heading = 0;
+	    private int gpsDirection = 0;
+	    private float diference = 0;
+	
+	@Override
+	public void notifyLocation(Location location) {
+		 String locationText = getLocationText(gps.getLocation());
+	  	   if(locationText!=null){
+	  		 Log.i("INFO",locationText);
+	  	   }else{
+	  		 Log.i("INFO","Sem coordenada");
+	  	   }
+	  	 //SharedPreferences settings = this.getSharedPreferences(ConfigActivity.PREFS_NAME, 0);
+	  	 //String serverIP = settings.getString(ConfigActivity.PARAM_SERVERIP , "");
+	     //String serverPort = settings.getString(ConfigActivity.PARAM_SERVERPORT , "");
+	     
+	     StringBuilder message = new StringBuilder();
+	     message.append(locationText);
+	     message.append("NO;"); //found
+	     
+	     String robotId = "TESTE_3204982034580293450";
+	     message.append(robotId); //found
+	     Location origin = gps.getLocation();
+	     
+	     
+	     geoField = new GeomagneticField(
+	             Double.valueOf(location.getLatitude()).floatValue(),
+	             Double.valueOf(location.getLongitude()).floatValue(),
+	             Double.valueOf(location.getAltitude()).floatValue(),
+	             System.currentTimeMillis()
+	          );
+	     
+	     
+	     
+	     myBearing += geoField.getDeclination();
+	     heading = myBearing - (myBearing + heading); 
+	     gpsDirection = Math.round (-heading / 360 + 180);
+	     
+	     if(origin!=null && destiny!=null){
+		     //Location dest = new Location("dest");
+		     //dest.setLatitude(destiny[0]);
+		     //dest.setLongitude(destiny[1]);
+		     distance = meterDistanceBetweenPoints(origin.getLatitude(),origin.getLongitude(), destiny[0],destiny[1]);
+	     }else{
+	    	 distance = 0;
+	     }
+	   
+	     //if(sendToServer(serverIP,serverPort, message.toString())){
+	    //	 appendLog("RESCUEBOT CLIENT at "+ serverIP + ":" +serverPort +"ONLINE =)");	
+	    // }else{
+	    //	 appendLog("<font color=red>RESCUEBOT CLIENT at "+ serverIP + ":" +serverPort +"OFFLINE =(</font>");	
+	    // }
+	}
+	private double meterDistanceBetweenPoints(double lat_a, double lng_a, double lat_b, double lng_b) {
+		double pk = (double) (180.f/Math.PI);
+
+		double a1 = lat_a / pk;
+		double a2 = lng_a / pk;
+		double b1 = lat_b / pk;
+		double b2 = lng_b / pk;
+
+		double t1 = Math.cos(a1)*Math.cos(a2)*Math.cos(b1)*Math.cos(b2);
+		double t2 = Math.cos(a1)*Math.sin(a2)*Math.cos(b1)*Math.sin(b2);
+		double t3 = Math.sin(a1)*Math.sin(b1);
+	    double tt = Math.acos(t1 + t2 + t3);
+
+	    return 6366000*tt;
+	}
+	public String getLocationText(Location location){
+		if(location!=null){
+			StringBuilder out = new StringBuilder();
+			out.append("0;");
+			out.append(location.getAccuracy() + ";");
+			out.append(location.getAltitude() + ";");
+			out.append(location.getBearing() + ";");
+			out.append(location.getLatitude() + ";");
+			out.append(location.getLongitude() + ";");
+			out.append(location.getProvider() + ";");
+			out.append(location.getSpeed() + ";");
+			out.append(location.getTime() + ";");
+			
+			//controller.inserir(fillLocationBean(location));
+			return out.toString();	
+		}else{
+			return "No Location";
+		}
+		
+	}
+	
+	private int index = 0;
+	private boolean finishFouding = false; 
+	private double distance = 0;
+	private Double[] destiny = null;
+	public void automatic(){
+		if(gps.getLocation()!=null){
+			Location location = gps.getLocation();
+			Double[] current = new Double[]{location.getLatitude(),location.getLongitude()};
+			
+			
+			String d = direction(current, destiny);
+			//distance = MathEngine.getDistanceD(current, destiny);
+			
+			int volume = (distance>0)?100/(int)distance:0;
+			
+			//ToneGenerator toneGen1 = new ToneGenerator(AudioManager.STREAM_MUSIC, volume);             
+			//toneGen1.startTone(ToneGenerator.TONE_CDMA_PIP,150);  
+			
+			if(distance>2){
+				//tone.startTone(ToneGenerator.TONE_CDMA_PIP,150); 
+				sendSerial(d);
+			}else{
+				finishFouding = true;
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				finishFouding = false;
+				//ToneGenerator tone = new ToneGenerator(AudioManager.STREAM_ALARM, volume);
+				//tone.startTone(ToneGenerator.TONE_CDMA_PIP,1050); 
+				///finishFouding = true;
+			}
+		
+		}
+		//mTxtReceive.append("current location......: " +  current);
+		//mTxtReceive.append("destiny location......: " +  destiny);
+		//mTxtReceive.append("serial location.......: " +  d);
+		//mTxtReceive.append("serial index..........: " + index);
+		//mTxtReceive.append("serial finishFouding..: " + finishFouding);
+		
+	}
+	
+	public String direction(Double[] center, Double[] destiny){
+		//if (destiny != null) {
+			//double angle = MathEngine.getDirection(center, destiny);
+		    
+			///double dif = Double.parseDouble(""+ currentDegree) - angle;
+			//Log.i("INFO",Double.parseDouble(""+ currentDegree) + "-" + angle+"="+dif);
+		    diference = (currentDegree>gpsDirection)?currentDegree-gpsDirection:currentDegree+gpsDirection;
+		    //diference   = Math.abs( currentDegree-gpsDirection );
+		   
+			if(diference>180 && diference<315){
+				//direita
+				return "c";
+			}else if(diference>45 && diference<=180){
+				//esquerda
+				return "b";
+			}else{
+				//frente
+				return "a";
+			}
+		//}
+		//return null;
+	}
+	
+	//List<Double[]> coordinates = new ArrayList<Double[]>(){{
+	//	   add(new Double[]{-22.65267667,-50.39065073});
+		  // add(new Double[]{-22.65267369,-50.39065192});
+		  // add(new Double[]{-22.65267311,-50.39065371});
+		  // add(new Double[]{-22.65267087,-50.39065442});
+		  // add(new Double[]{-22.65267369,-50.39065192});
+	//	}};
+	
+	
+	
+	public void autoOnClick(View view){
+		  Intent intent = new Intent(this, AboutScreen.class);
+	        intent.putExtra("ABOUT_TEXT_TITLE", "User Defined Targets");
+		
+		  
+		  intent.putExtra("ACTIVITY_TO_LAUNCH",
+                  "app.UserDefinedTargets.UserDefinedTargets");
+              intent.putExtra("ABOUT_TEXT",
+                  "UserDefinedTargets/UD_about.html");
+		 
+	        
+			intent.putExtra(DEVICE_EXTRA, mDevice);
+			intent.putExtra(DEVICE_UUID, mDeviceUUID.toString());
+			intent.putExtra(BUFFER_SIZE, mMaxChars);
+			//intent.putExtra(BLUE_SOCKET,mBTSocket);
+			
+		  
+		  
+		  startActivity(intent);
+	}
+	private static String lastmessage = "";
+	private void sendSerial(String message){
+		try {
+			if(!lastmessage.equalsIgnoreCase(message)){
+				mBTSocket.getOutputStream().write(message.getBytes());
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			
+		}
+	}
+	private class ReadInput implements Runnable {
+
+		private boolean bStop = false;
+		private Thread t;
+
+		public ReadInput() {
+			t = new Thread(this, "Input Thread");
+			t.start();
+		}
+
+		public boolean isRunning() {
+			return t.isAlive();
+		}
+
+		@Override
+		public void run() {
+			InputStream inputStream;
+
+			try {
+				inputStream = mBTSocket.getInputStream();
+				while (!bStop) {
+					byte[] buffer = new byte[256];
+					if (inputStream.available() > 0) {
+						inputStream.read(buffer);
+						int i = 0;
+						/*
+						 * This is needed because new String(buffer) is taking the entire buffer i.e. 256 chars on Android 2.3.4 http://stackoverflow.com/a/8843462/1287554
+						 */
+						for (i = 0; i < buffer.length && buffer[i] != 0; i++) {
+						}
+						final String strInput = new String(buffer, 0, i);
+
+						/*
+						 * If checked then receive text, better design would probably be to stop thread if unchecked and free resources, but this is a quick fix
+						 */
+
+						if (chkReceiveText.isChecked()) {
+							mTxtReceive.post(new Runnable() {
+								@Override
+								public void run() {
+									mTxtReceive.append(strInput);
+									//Uncomment below for testing
+									//mTxtReceive.append("\n");
+									//mTxtReceive.append("Chars: " + strInput.length() + " Lines: " + mTxtReceive.getLineCount() + "\n");
+									
+									int txtLength = mTxtReceive.getEditableText().length();  
+									if(txtLength > mMaxChars){
+										mTxtReceive.getEditableText().delete(0, txtLength - mMaxChars);
+									}
+
+									if (chkScroll.isChecked()) { // Scroll only if this is checked
+										scrollView.post(new Runnable() { // Snippet from http://stackoverflow.com/a/4612082/1287554
+													@Override
+													public void run() {
+														scrollView.fullScroll(View.FOCUS_DOWN);
+													}
+												});
+									}
+								}
+							});
+						}
+
+					}
+					Thread.sleep(500);
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+	
+		public void stop() {
+			bStop = true;
+		}
+
+	}
+
+	private class DisConnectBT extends AsyncTask<Void, Void, Void> {
+
+		@Override
+		protected void onPreExecute() {
+		}
+
+		@Override
+		protected Void doInBackground(Void... params) {
+
+			if (mReadThread != null) {
+				mReadThread.stop();
+				while (mReadThread.isRunning())
+					; // Wait until it stops
+				mReadThread = null;
+
+			}
+
+			try {
+				mBTSocket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void result) {
+			super.onPostExecute(result);
+			mIsBluetoothConnected = false;
+			if (mIsUserInitiatedDisconnect) {
+				finish();
+			}
+		}
+
+	}
+
+	private void msg(String s) {
+		Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	protected void onPause() {
+		// to stop the listener and save battery
+        mSensorManager.unregisterListener(this);
+		if (mBTSocket != null && mIsBluetoothConnected) {
+			new DisConnectBT().execute();
+		}
+		Log.d(TAG, "Paused");
+		super.onPause();
+		
+	
+
+	}
+
+	@Override
+	protected void onResume() {
+		 // for the system's orientation sensor registered listeners
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION),
+                SensorManager.SENSOR_DELAY_GAME);
+		
+		if (mBTSocket == null || !mIsBluetoothConnected) {
+			new ConnectBT().execute();
+		}
+		Log.d(TAG, "Resumed");
+		super.onResume();
+		
+		
+
+	}
+
+	@Override
+	protected void onStop() {
+		Log.d(TAG, "Stopped");
+		super.onStop();
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		// TODO Auto-generated method stub
+		super.onSaveInstanceState(outState);
+	}
+
+	private class ConnectBT extends AsyncTask<Void, Void, Void> {
+		private boolean mConnectSuccessful = true;
+
+		@Override
+		protected void onPreExecute() {
+			if(progressDialog==null){
+			progressDialog = ProgressDialog.show(MainActivity.this, "Hold on", "Connecting");// http://stackoverflow.com/a/11130220/1287554
+			}
+		}
+
+		@SuppressLint("NewApi")
+		@Override
+		protected Void doInBackground(Void... devices) {
+
+			try {
+				if (mBTSocket == null || !mIsBluetoothConnected) {
+					mBTSocket = mDevice.createInsecureRfcommSocketToServiceRecord(mDeviceUUID);
+					BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
+					mBTSocket.connect();
+				}
+			} catch (IOException e) {
+				// Unable to connect to device
+				e.printStackTrace();
+				mConnectSuccessful = false;
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void result) {
+			super.onPostExecute(result);
+
+			if (!mConnectSuccessful) {
+				Toast.makeText(getApplicationContext(), "Could not connect to device. Is it a Serial device? Also check if the UUID is correct in the settings", Toast.LENGTH_LONG).show();
+				finish();
+			} else {
+				msg("Connected to device");
+				mIsBluetoothConnected = true;
+				mReadThread = new ReadInput(); // Kick off input reader
+				
+				new AutonomyAsyncTask().execute();
+				
+			}
+			if(progressDialog!=null){
+			progressDialog.dismiss();
+			}
+			
+			 /* Intent intent = new Intent(MainActivity.this, AboutScreen.class);
+		        intent.putExtra("ABOUT_TEXT_TITLE", "User Defined Targets");
+			
+			  
+			  intent.putExtra("ACTIVITY_TO_LAUNCH",
+	                  "app.UserDefinedTargets.UserDefinedTargets");
+	              intent.putExtra("ABOUT_TEXT",
+	                  "UserDefinedTargets/UD_about.html");
+			 
+				
+				intent.putExtra(DEVICE_EXTRA, mDevice);
+				intent.putExtra(DEVICE_UUID, mDeviceUUID.toString());
+				intent.putExtra(BUFFER_SIZE, mMaxChars);
+				startActivity(intent);
+			  
+			  
+			  startActivity(intent);*/
+		}
+
+	}
+	
+	public class AutonomyAsyncTask extends AsyncTask<Void, Void, Void>{
+		@Override
+		protected void onPreExecute() {
+			
+		}
+		@Override
+		protected Void doInBackground(Void... params) {
+			for (int i = 0; i < coordinates.size(); i++) {
+				//Double[] current = null;
+				
+				
+				if(destiny==null && coordinates!=null && coordinates.size()>0){
+					destiny = coordinates.get(0).toCoordinate();
+					index = index+1;
+				}else if(index<coordinates.size()-1){
+					destiny = coordinates.get(index).toCoordinate();
+					
+				}else if(index>=coordinates.size()-1){
+					destiny = coordinates.get(coordinates.size()-1).toCoordinate();
+				}else{
+					index = 0;
+					finishFouding = true;
+				}
+				
+				  while(!finishFouding && mIsBluetoothConnected){
+				    	 automatic();
+				    	 try {
+							Thread.sleep(500);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+				     }
+				
+				
+			}
+			 
+			return null;
+		}
+		@Override
+		protected void onPostExecute(Void result) {
+			super.onPostExecute(result);
+		}
+	}
+
+}

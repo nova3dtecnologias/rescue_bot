@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0014)about:internet -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RESCUE Bots - Monitor</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">td img {display: block;}
+</style>
+<!--Fireworks CS6 Dreamweaver CS6 target.  Created Wed Jun 15 18:05:44 GMT-0300 (Hora oficial do Brasil) 2016-->
+</head>
+<body bgcolor="#000000">
+<table style="display: inline-table;" border="0" cellpadding="0" cellspacing="0" width="1200" align="center">
+<!-- fwtable fwsrc="site.png" fwpage="Page 1" fwbase="index.png" fwstyle="Dreamweaver" fwdocid = "447892727" fwnested="0" -->
+  <tr>
+   <td><img src="spacer.gif" width="1043" height="1" alt="" /></td>
+   <td><img src="spacer.gif" width="157" height="1" alt="" /></td>
+   <td><img src="spacer.gif" width="1" height="1" alt="" /></td>
+  </tr>
+  <tr>
+   <td colspan="2">
+   <img name="index_r1_c1" src="index_r1_c1.png" width="1200" height="79" id="index_r1_c1" alt="" />
+   </td>
+   <td><img src="spacer.gif" width="1" height="79" alt="" /></td>
+  </tr>
+  <tr>
+   <td width="1200" height="79"><div id="map" style="width:100%"></div></td>
+   <td bgcolor="#000000" background="index_r2_c2.png" width="157" height="671">
+   <table width="100%" border="0">
+     <tr align="center" valign="middle">
+       <td height="120"><img src="icon_online.png"  alt="" width="115" height="82" align="absmiddle"/></td>
+     </tr>
+     <tr>
+       <td height="114"><img src="icon_offline.png" width="115" height="82"  alt=""/></td>
+     </tr>
+     <tr>
+       <td height="116"><img src="icon_off.png" width="115" height="82"  alt=""/></td>
+     </tr>
+     <tr>
+       <td height="112"><img src="icon_off.png" width="115" height="82"  alt=""/></td>
+     </tr>
+   </table></td>
+   <td><img src="spacer.gif" width="1" height="671" alt="" /></td>
+  </tr>
+</table>
+
+ <script src="http://code.jquery.com/jquery-1.10.2.js"
+    type="text/javascript"></script>
+<script type="text/javascript" src="js/jquery.js"></script>
+
+
+ <script>
+    
+      var lastCoordinate = null;
+      var map = null;
+      var updateMarker = null;
+      var botIcon = "img/robot_fiding.gif";  
+      //var listbots = { 
+    	//	  { botid: 1,status:2 ,img}, 
+    	//	  { botid: 1,status:2 }, 
+    	//	  { botid: 1,status:2 }, 
+    	//	  { botid: 1,status:2 } 
+      //};
+      //var sendroute = { { lat: 1,long:2 }, {lat: 1,long:2 }, { lat: 1,long:2 }, { lat: 1,long:2  } };
+      //var sendbot = { botid:0,status:offline};
+      
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 22,
+          center: {lat: -22.65267087, lng: -50.39065442 }
+          //"-22.65267087";"-50.39065442"
+        });
+
+        map.addListener('click', function(e) {
+        	placeMarkerAndPanTo(e.latLng, map);
+        });
+      }
+
+      function placeMarkerAndPanTo(latLng, map) {
+        var marker = new google.maps.Marker({
+          position: latLng,
+          map: map
+        });
+        map.panTo(latLng);
+      }
+      function placeMarkerBotLocation(latLng, map) {
+    	  if(updateMarker==null){
+    		  
+    		
+    		  updateMarker = new google.maps.Marker({
+    	            position: latLng,
+    	            map: map,
+    	            icon: botIcon,
+    	            optimized: false,
+    	            draggable:true
+    	               
+    	          });  
+    	  }else{
+    		  updateMarker.setPosition(latLng);
+    	  }
+    	  
+          //map.panTo(latLng);
+        }
+      
+      
+      
+      
+      //function updateMap(lat, lon) {
+	//	    var latlon=new google.maps.LatLng(lat, lon),
+		    //mapholder=document.getElementById('mapholder')
+		    
+		  //  var myOptions={
+		  //    center:latlon,zoom:14,
+		  //    mapTypeId:google.maps.MapTypeId.ROADMAP,
+		  //    mapTypeControl:false,
+		  //    navigationControlOptions:{style:google.maps.NavigationControlStyle.SMALL}
+		  //};
+		  //var map=new google.maps.Map(document.getElementById("mapholder"),myOptions);
+		//  var marker=new google.maps.Marker({position:latlon,map:map,title:"You are here!"});
+		//}
+	  function getRobots(){
+		  $.get('CommandServlet', {
+              method : 'getrobots'
+      }, function(responseText) {
+              $('#divrobots').text(responseText);
+              var robots = JSON.parse(responseText);
+              
+      });  
+	  }    
+      function getLocation() {
+               
+		  
+		    //navigator.geolocation.getCurrentPosition(showPosition,showError);
+		       // var i = 0;        
+		        setInterval(function(){
+		        	$.get('CommandServlet', {
+	                        method : 'getlocation', robotid : '123123'
+	                }, function(responseText) {
+	                	if(responseText!=null && responseText!=''){
+	                        $('#ajaxGetUserServletResponse').text(responseText);
+	                        lastCoordinate = JSON.parse(responseText);
+	                    }
+	                });   
+		        	if (lastCoordinate!=null){
+		        		var latlon=new google.maps.LatLng(lastCoordinate[0], lastCoordinate[1]);
+		        		placeMarkerBotLocation(latlon, map);
+		        		console.log(latlon);
+		        	}else{
+					  $('#ajaxGetUserServletResponse').text("Geolocation not found.");
+		        	}
+		        }, 2000)
+	  }
+      getLocation();
+      
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC7AjKZ7Xi2Gyj_1vM_QZ9FCFsqRuy3A8k &callback=initMap">
+    </script>
+
+</body>
+</html>

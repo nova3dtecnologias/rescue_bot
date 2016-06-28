@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>RESCUE Bots - Monitor</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+      }
+     
+    </style>
+    
+    
+    <script src="http://code.jquery.com/jquery-1.10.2.js"
+    type="text/javascript"></script>
+
+  </head>
+  <body>
+   <form>
+        Enter Your Name: <input type="text" id="userName" />
+    </form>
+    <br>
+    <br>
+ 
+    <strong>Ajax Response</strong>:
+    <div id="ajaxGetUserServletResponse"></div>
+   <div id="left"> 
+       <h2>RescueBots List</h2>
+       
+    <div class="list-group">
+      <a href="#" class="list-group-item list-group-item-success">First item</a>
+      <a href="#" class="list-group-item list-group-item-info">Second item</a>
+      <a href="#" class="list-group-item list-group-item-warning">Third item</a>
+      <a href="#" class="list-group-item list-group-item-danger">Fourth item</a>
+    </div>
+    </div>
+    <div id="map"></div>
+   
+    
+    
+    
+    <script>
+    
+      var lastCoordinate = null;
+      var map = null;
+      var updateMarker = null;
+      var botIcon = "img/robot_fiding.gif";  
+      //var listbots = { 
+    	//	  { botid: 1,status:2 ,img}, 
+    	//	  { botid: 1,status:2 }, 
+    	//	  { botid: 1,status:2 }, 
+    	//	  { botid: 1,status:2 } 
+      //};
+      //var sendroute = { { lat: 1,long:2 }, {lat: 1,long:2 }, { lat: 1,long:2 }, { lat: 1,long:2  } };
+      //var sendbot = { botid:0,status:offline};
+      
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 22,
+          center: {lat: -22.65267087, lng: -50.39065442 }
+          //"-22.65267087";"-50.39065442"
+        });
+
+        map.addListener('click', function(e) {
+        	placeMarkerAndPanTo(e.latLng, map);
+        });
+      }
+
+      function placeMarkerAndPanTo(latLng, map) {
+        var marker = new google.maps.Marker({
+          position: latLng,
+          map: map
+        });
+        map.panTo(latLng);
+      }
+      function placeMarkerBotLocation(latLng, map) {
+    	  if(updateMarker==null){
+    		  
+    		
+    		  updateMarker = new google.maps.Marker({
+    	            position: latLng,
+    	            map: map,
+    	            icon: botIcon,
+    	            optimized: false,
+    	            draggable:true
+    	               
+    	          });  
+    	  }else{
+    		  updateMarker.setPosition(latLng);
+    	  }
+    	  
+          //map.panTo(latLng);
+        }
+      
+      
+      
+      function listRobots(){
+    	  $.get('CommandServlet', {
+              method : 'listrobots'
+      }, function(responseText) {
+    	  if(responseText!=null && responseText!=''){
+    	  var robots = JSON.parse(responseText);
+    	 
+    	  var out = "";
+    	    var i;
+    	    for(i = 0; i < robots.length; i++) {
+    	        out += '<a href="CommandServlet?method=getlocation&robotid=' + arr[i] + '">' +
+    	        arr[i] + '</a><br>';
+    	    }
+    	    document.getElementById("left").innerHTML = out;
+    	  }else{
+    		  document.getElementById("left").innerHTML = "Nenhum robo cadastrado";
+    	  }
+    	  
+              
+              
+      });    
+    	  
+      }
+      //function updateMap(lat, lon) {
+	//	    var latlon=new google.maps.LatLng(lat, lon),
+		    //mapholder=document.getElementById('mapholder')
+		    
+		  //  var myOptions={
+		  //    center:latlon,zoom:14,
+		  //    mapTypeId:google.maps.MapTypeId.ROADMAP,
+		  //    mapTypeControl:false,
+		  //    navigationControlOptions:{style:google.maps.NavigationControlStyle.SMALL}
+		  //};
+		  //var map=new google.maps.Map(document.getElementById("mapholder"),myOptions);
+		//  var marker=new google.maps.Marker({position:latlon,map:map,title:"You are here!"});
+		//}
+	      
+      function getLocation() {
+               
+		    //navigator.geolocation.getCurrentPosition(showPosition,showError);
+		       // var i = 0;        
+		        setInterval(function(){
+		        
+		         $.get('CommandServlet', {
+                        method : 'getlocation', robotid : '9C:D9:17:77:74:DC'
+                }, function(responseText) {
+                	    if(responseText!=null && responseText!=''){
+                         $('#ajaxGetUserServletResponse').text(responseText);
+                         lastCoordinate = JSON.parse(responseText);
+                	    }
+                });    
+		  
+		        	if (lastCoordinate!=null){
+		        		var latlon=new google.maps.LatLng(lastCoordinate[0], lastCoordinate[1]);
+		        		placeMarkerBotLocation(latlon, map);
+		        		console.log(latlon);
+		        	}else{
+					  $('#ajaxGetUserServletResponse').text("Geolocation not found.");
+		        	}
+		        }, 2000)
+	  }
+      listRobots();
+      getLocation();
+      
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC7AjKZ7Xi2Gyj_1vM_QZ9FCFsqRuy3A8k &callback=initMap">
+    </script>
+  </body>
+</html>

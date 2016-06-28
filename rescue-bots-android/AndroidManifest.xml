@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="br.com.rescue_bots_android"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />  
+    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    
+        <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    
+    <uses-permission android:name="android.permission.CAMERA" />
+ <uses-feature android:name="android.hardware.camera" />
+ <uses-feature android:name="android.hardware.camera.autofocus" />
+     <uses-feature android:name="android.hardware.usb.host" />
+    
+    <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="17" />
+
+    <application
+        android:allowBackup="true"
+         android:name="br.com.rescue_bots_android.bluetooth.MyApplication"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name" >
+        <activity
+            android:name=".MainActivity"
+            android:label="Teste" 
+             android:screenOrientation="portrait" >
+            
+        </activity>
+         <activity
+            android:name=".RouteActivity"
+            android:label="Route" 
+             android:screenOrientation="portrait" >
+            
+        </activity>
+        <activity
+            android:name=".ConfigActivity"
+            android:label="Configuration" 
+             android:screenOrientation="portrait" >
+              <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+         <activity
+            android:name=".SplashActivity"
+            android:label="Startup" 
+             android:screenOrientation="portrait" >
+            <!-- intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter-->
+        </activity>
+        
+         
+         
+         
+           <activity
+            android:name="br.com.rescue_bots_android.ui.ActivityList.ActivitySplashScreen"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
+            android:screenOrientation="portrait"
+            android:noHistory="true"
+            >
+            <!-- intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter-->
+         </activity>
+        
+        <activity
+            android:name="br.com.rescue_bots_android.ui.ActivityList.ActivityLauncher"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
+            android:screenOrientation="portrait"
+            >
+        </activity>
+        
+         <activity
+            android:name="br.com.rescue_bots_android.ui.ActivityList.AboutScreen"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
+            android:screenOrientation="portrait"
+            android:noHistory="true"
+            >
+        </activity>
+         
+        <activity
+            android:name="br.com.rescue_bots_android.app.ImageTargets.ImageTargets"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
+        	android:theme="@style/SampleAppsTheme"
+ 	        android:launchMode="singleTask"
+            >
+        </activity>
+        
+        <activity
+            android:name="br.com.rescue_bots_android.app.TextRecognition.TextReco"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
+        	android:theme="@style/SampleAppsTheme"
+  	        android:launchMode="singleTask"
+            >
+        </activity>
+
+        <activity
+            android:name="br.com.rescue_bots_android.app.CylinderTargets.CylinderTargets"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
+        	android:theme="@style/SampleAppsTheme"
+ 	        android:launchMode="singleTask"
+            >
+        </activity>
+        
+        <activity
+            android:name="br.com.rescue_bots_android.app.FrameMarkers.FrameMarkers"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
+        	android:theme="@style/SampleAppsTheme"
+ 	        android:launchMode="singleTask"
+            >
+        </activity>
+        
+        <activity
+            android:name="br.com.rescue_bots_android.app.VirtualButtons.VirtualButtons"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
+        	android:theme="@style/SampleAppsTheme"
+ 	        android:launchMode="singleTask"
+            >
+        </activity>
+        
+        <activity
+            android:name="br.com.rescue_bots_android.app.UserDefinedTargets.UserDefinedTargets"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
+        	android:theme="@style/SampleAppsTheme"
+ 	        android:launchMode="singleTask"
+            >
+        </activity>
+                
+        <activity
+            android:name="br.com.rescue_bots_android.app.MultiTargets.MultiTargets"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
+        	android:theme="@style/SampleAppsTheme"
+ 	        android:launchMode="singleTask"
+            >
+        </activity>
+        
+        <activity
+            android:name="br.com.rescue_bots_android.app.CloudRecognition.CloudReco"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
+        	android:theme="@style/SampleAppsTheme"
+ 	        android:launchMode="singleTask"
+            >
+        </activity>
+         
+        <activity
+            android:name="br.com.rescue_bots_android.app.ObjectRecognition.ObjectTargets"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
+        	android:theme="@style/SampleAppsTheme"
+ 	        android:launchMode="singleTask"
+            >
+        </activity>
+         
+         
+        
+        
+          <activity
+            android:name="br.com.rescue_bots_android.serial.SerialActivity"
+             android:screenOrientation="portrait" 
+            android:label="@string/app_name" >
+            <!-- intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter" /-->
+        </activity>
+        
+        
+          
+          
+          
+          
+         <activity
+            android:name="br.com.rescue_bots_android.bluetooth.MainActivity"
+            android:label="@string/app_name"
+             android:screenOrientation="portrait"  >
+            <!-- intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter-->
+        </activity>
+        <activity
+            android:name="br.com.rescue_bots_android.bluetooth.Homescreen"
+             android:screenOrientation="portrait" 
+            android:label="@string/app_name" >
+           
+        </activity>
+        <activity android:name="br.com.rescue_bots_android.bluetooth.PreferencesActivity"
+             android:screenOrientation="portrait" ></activity>
+        
+         
+    </application>
+
+</manifest>

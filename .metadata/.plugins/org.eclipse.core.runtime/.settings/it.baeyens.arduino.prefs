@@ -1,0 +1,17 @@
+714=3
+Automatically\ import\ libraries=true
+Board=SparkFun ESP8266 Thing
+Board\ custom\ option\ selections=Flash Mode\=\nFlash Frequency\=\nCPU Frequency\=80 MHz\nFlash Size\=\nDebug port\=\nlwIP Variant\=\nDebug Level\=\nReset Method\=\nModule\=\nUpload Speed\=115200
+Boards\ file=/Applications/sloeber.app/Contents/Eclipse/arduinoPlugin/packages/esp8266/hardware/esp8266/2.2.0/boards.txt
+FmStatus=1
+JANTJE.TEMPLATE_FOLDER=
+JANTJE.TEMPLATE_USE_DEFAULT=0
+Last\ used\ Examples=
+Open\ serial\ connections\ with\ the\ monitor=true
+Private\ Library\ Path=/Users/nova3d-macmini03/Arduino/libraries
+Private\ hardware\ Path=/Users/nova3d-macmini03/Arduino/hardware
+Serial\ monitor\ last\ selected\ Port=/dev/cu.usbmodem1471
+Serial\ monitor\ last\ selected\ rate=115200
+UPLOAD.PROTOCOL=Default
+Upload\ port=/dev/cu.usbmodem1471
+eclipse.preferences.version=1

@@ -1,0 +1,61 @@
+package br.com.rescuebots.pojo;
+
+import java.io.Serializable;
+
+public class Informacao implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+	private String message = "";
+	private String usuario = "";
+	private String robotid = "";
+	//latitude longitude de origem
+	private Double oLati = 0.0; 
+	private Double oLong = 0.0; 
+	//latitude longitude de destino
+	private Double dLati = 0.0;
+	private Double dLong = 0.0; 
+	
+	public String getUsuario() {
+		return usuario;
+	}
+	public void setUsuario(String usuario) {
+		this.usuario = usuario;
+	}
+	public String getMessage() {
+		return message;
+	}
+	public void setMessage(String message) {
+		this.message = message;
+	}
+	
+	public String getRobotid() {
+		return robotid;
+	}
+	public void setRobotid(String robotid) {
+		this.robotid = robotid;
+	}
+	public Double getoLati() {
+		return oLati;
+	}
+	public void setoLati(Double oLati) {
+		this.oLati = oLati;
+	}
+	public Double getoLong() {
+		return oLong;
+	}
+	public void setoLong(Double oLong) {
+		this.oLong = oLong;
+	}
+	public Double getdLati() {
+		return dLati;
+	}
+	public void setdLati(Double dLati) {
+		this.dLati = dLati;
+	}
+	public Double getdLong() {
+		return dLong;
+	}
+	public void setdLong(Double dLong) {
+		this.dLong = dLong;
+	}
+}
